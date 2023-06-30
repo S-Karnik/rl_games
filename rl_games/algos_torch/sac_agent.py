@@ -39,6 +39,7 @@ class SACAgent(BaseAlgorithm):
         self.num_steps_per_episode = config.get("num_steps_per_episode", 1)
         self.normalize_input = config.get("normalize_input", False)
         self.save_freq = config.get('save_frequency', 0)
+        self.grad_norm = config.get("grad_norm", 0.5)
         
         self.max_env_steps = config.get("max_env_steps", 1000) # temporary, in future we will use other approach
 
@@ -187,6 +188,15 @@ class SACAgent(BaseAlgorithm):
         self.last_rnn_indices = None
         self.last_state_indices = None
 
+        self.buffer_vary_ttg = config["buffer_vary_ttg"]
+        self.bootstrap_values = config["bootstrap_values"]
+        if self.buffer_vary_ttg:
+            self.num_time_to_go = config["num_time_to_go"]
+            self.num_replay_buf_samples = config["num_replay_buf_samples"]
+            self.min_gamma = config["min_gamma"]
+            self.max_gamma = config["max_gamma"]
+            self.num_agents *= self.num_replay_buf_samples
+
     def init_tensors(self):
         if self.observation_space.dtype == np.uint8:
             torch_dtype = torch.uint8
@@ -275,6 +285,7 @@ class SACAgent(BaseAlgorithm):
         critic2_loss = self.c_loss(current_Q2, target_Q)
         critic_loss = critic1_loss + critic2_loss 
         self.critic_optimizer.zero_grad(set_to_none=True)
+        torch.nn.utils.clip_grad_norm_(self.model.sac_network.critic.parameters(), self.grad_norm)
         critic_loss.backward()
         self.critic_optimizer.step()
 
@@ -293,8 +304,8 @@ class SACAgent(BaseAlgorithm):
 
         actor_loss = (torch.max(self.alpha.detach(), self.min_alpha) * log_prob - actor_Q)
         actor_loss = actor_loss.mean()
-
         self.actor_optimizer.zero_grad(set_to_none=True)
+        torch.nn.utils.clip_grad_norm_(self.model.sac_network.actor.parameters(), self.grad_norm)
         actor_loss.backward()
         self.actor_optimizer.step()
 
@@ -305,6 +316,7 @@ class SACAgent(BaseAlgorithm):
             alpha_loss = (self.alpha *
                           (-log_prob - self.target_entropy).detach()).mean()
             self.log_alpha_optimizer.zero_grad(set_to_none=True)
+            torch.nn.utils.clip_grad_norm_(self.model.sac_network.critic.parameters(), self.grad_norm)
             alpha_loss.backward()
             self.log_alpha_optimizer.step()
         else:
@@ -317,8 +329,26 @@ class SACAgent(BaseAlgorithm):
             target_param.data.copy_(tau * param.data +
                                     (1.0 - tau) * target_param.data)
 
+    def check_episode_end(self, obs):
+        return torch.where(obs[:, -self.num_time_to_go+1] == 1.0)
+
+    def random_obs_variations(self, obs, action, reward, next_obs, done):
+        obs = torch.repeat_interleave(obs, repeats=self.num_replay_buf_samples, dim=0)
+        action = torch.repeat_interleave(action, repeats=self.num_replay_buf_samples, dim=0)
+        reward = torch.repeat_interleave(reward, repeats=self.num_replay_buf_samples, dim=0)
+        next_obs = torch.repeat_interleave(next_obs, repeats=self.num_replay_buf_samples, dim=0)
+        done = torch.repeat_interleave(done, repeats=self.num_replay_buf_samples, dim=0)
+        # TODO: distinguish between done from early termination vs end of episode length. we can check this be checking the values of the observations
+        episode_ends = self.check_episode_end(obs)
+        done[episode_ends] = False
+        import pdb; pdb.set_trace()
+        random_time_to_gos = torch.randint()
+        
+
     def update(self, step):
         obs, action, reward, next_obs, done = self.replay_buffer.sample(self.batch_size)
+        # if self.buffer_vary_ttg:
+        #     obs, action, reward, next_obs, done = self.random_obs_variations(obs, action, reward, next_obs, done)
         not_done = ~done
 
         obs = self.preproc_obs(obs)
