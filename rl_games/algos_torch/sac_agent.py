@@ -195,7 +195,7 @@ class SACAgent(BaseAlgorithm):
             self.num_replay_buf_samples = config["num_replay_buf_samples"]
             self.min_gamma = config["min_gamma"]
             self.max_gamma = config["max_gamma"]
-            self.num_agents *= self.num_replay_buf_samples
+            # self.num_agents *= self.num_replay_buf_samples
 
     def init_tensors(self):
         if self.observation_space.dtype == np.uint8:
