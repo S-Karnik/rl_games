@@ -37,7 +37,8 @@ class SACAgent(BaseAlgorithm):
         self.replay_buffer_size = config["replay_buffer_size"]
         self.num_steps_per_episode = config.get("num_steps_per_episode", 1)
         self.normalize_input = config.get("normalize_input", False)
-
+        self.save_freq = config.get('save_frequency', 0)
+        
         self.max_env_steps = config.get("max_env_steps", 1000) # temporary, in future we will use other approach
 
         print(self.batch_size, self.num_actors, self.num_agents)
