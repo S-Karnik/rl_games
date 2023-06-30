@@ -27,6 +27,8 @@ class SACAgent(BaseAlgorithm):
 
         # TODO: Get obs shape and self.network
         self.load_networks(params)
+        self.algo_observer = config['features']['observer']
+        self.algo_observer.before_init(base_name, config, self.experiment_name)
         self.base_init(base_name, config)
         self.num_warmup_steps = config["num_warmup_steps"]
         self.gamma = config["gamma"]
@@ -90,8 +92,6 @@ class SACAgent(BaseAlgorithm):
         print("Target entropy", self.target_entropy)
 
         self.step = 0
-        self.algo_observer = config['features']['observer']
-        self.algo_observer.before_init(base_name, config, self.experiment_name)
 
         # TODO: Is there a better way to get the maximum number of episodes?
         self.max_episodes = torch.ones(self.num_actors, device=self._device)*self.num_steps_per_episode
