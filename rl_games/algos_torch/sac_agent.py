@@ -324,7 +324,6 @@ class SACAgent(BaseAlgorithm):
             self.log_alpha_optimizer.step()
         else:
             alpha_loss = None
-        import pdb; pdb.set_trace()
 
         return actor_loss.detach(), entropy.detach(), self.alpha.detach(), alpha_loss # TODO: maybe not self.alpha
 
