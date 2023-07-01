@@ -344,16 +344,16 @@ class SACAgent(BaseAlgorithm):
         # TODO: distinguish between done from early termination vs end of episode length. we can check this be checking the values of the observations
         episode_ends = self.check_episode_end(obs)
         done[episode_ends] = False
-        import pdb; pdb.set_trace()
-        random_time_to_gos = torch.randint(1, self.max_time_to_go + 1, size = (len(obs)//single_obs_dim, ))
+        random_time_to_gos = torch.randint(1, self.max_time_to_go + 1, size = (len(obs)//single_obs_dim, )).to(self._device)
         random_time_to_gos_p1 = random_time_to_gos - 1
         updated_obs = obs
-        original_indices = torch.arange(self.num_replay_buf_samples) * single_obs_dim
-        all_indices = torch.arange(obs.shape[0])
-        non_original_indices = torch.masked_select(all_indices, torch.logical_not(torch.isin(all_indices, original_indices)))
+        original_indices = torch.arange(self.num_replay_buf_samples, device=self._device) * single_obs_dim
+        all_indices = torch.arange(obs.shape[0], device=self._device)
+        non_original_indices = torch.masked_select(all_indices, torch.logical_not(torch.isin(all_indices, original_indices))).to(self._device)
         updated_obs[non_original_indices][-self.num_time_to_go:] = self.gammas_ttg ** random_time_to_gos
         next_obs[non_original_indices][-self.num_time_to_go:] = self.gammas_ttg ** random_time_to_gos_p1
         done[non_original_indices] = False
+        import pdb; pdb.set_trace()
 
     def update(self, step):
         obs, action, reward, next_obs, done = self.replay_buffer.sample(self.batch_size)
