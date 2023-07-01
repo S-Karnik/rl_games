@@ -355,7 +355,6 @@ class SACAgent(BaseAlgorithm):
         updated_obs[non_original_indices, -self.num_time_to_go:] = repeated_gammas ** random_time_to_gos
         next_obs[non_original_indices, -self.num_time_to_go:] = repeated_gammas ** random_time_to_gos_p1
         done[non_original_indices] = False
-        import pdb; pdb.set_trace()
         return obs, action, reward, next_obs, done
 
     def update(self, step):
