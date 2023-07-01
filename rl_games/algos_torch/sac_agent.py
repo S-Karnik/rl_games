@@ -514,7 +514,7 @@ class SACAgent(BaseAlgorithm):
             if not self.is_time_to_go:
                 dones = dones * no_timeouts
             else:
-                dones = dones * next_obs[next_obs[:, -self.num_time_to_go+1] == 1.0]
+                dones = dones * (next_obs[:, -self.num_time_to_go+1] == 1.0)
                 import pdb; pdb.set_trace()
             
             rewards = self.rewards_shaper(rewards)
