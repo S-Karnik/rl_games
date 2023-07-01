@@ -351,7 +351,6 @@ class SACAgent(BaseAlgorithm):
         all_indices = torch.arange(obs.shape[0], device=self._device)
         non_original_indices = torch.masked_select(all_indices, torch.logical_not(torch.isin(all_indices, original_indices))).to(self._device)
         repeated_gammas = self.gammas_ttg.unsqueeze(0).repeat(len(non_original_indices), 1)
-        import pdb; pdb.set_trace()
         updated_obs[non_original_indices, -self.num_time_to_go:] = repeated_gammas ** random_time_to_gos
         next_obs[non_original_indices, -self.num_time_to_go:] = repeated_gammas ** random_time_to_gos_p1
         done[non_original_indices] = False
