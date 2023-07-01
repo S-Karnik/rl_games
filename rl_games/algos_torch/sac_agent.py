@@ -196,7 +196,6 @@ class SACAgent(BaseAlgorithm):
             self.min_gamma = config["min_gamma"]
             self.max_gamma = config["max_gamma"]
             self.max_time_to_go = config["max_time_to_go"]
-            self.num_agents *= self.num_replay_buf_samples
             self.gammas_ttg = torch.linspace(self.min_gamma, self.max_gamma, self.num_time_to_go).to(device=self._device)
 
     def init_tensors(self):
