@@ -344,7 +344,7 @@ class SACAgent(BaseAlgorithm):
         done = torch.repeat_interleave(done, repeats=self.num_replay_buf_samples, dim=0).to(device=self._device)
         # TODO: distinguish between done from early termination vs end of episode length. we can check this be checking the values of the observations
         episode_ends = self.check_episode_end(obs)
-        random_time_to_gos = torch.randint(1, self.max_time_to_go + 1, size = (len(obs)//single_obs_dim, ))
+        random_time_to_gos = torch.randint(1, self.max_time_to_go + 1, size = (len(obs)//single_obs_dim, )).to(device=self._device)
         random_time_to_gos_p1 = random_time_to_gos - 1
         updated_obs = obs
         original_indices = torch.arange(self.num_replay_buf_samples) * single_obs_dim
