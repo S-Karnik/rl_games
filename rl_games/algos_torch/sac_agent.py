@@ -504,11 +504,6 @@ class SACAgent(BaseAlgorithm):
             self.algo_observer.process_infos(infos, done_indices)
 
             no_timeouts = self.current_lengths != self.max_env_steps
-            if not self.is_time_to_go:
-                dones = dones * no_timeouts
-            else:
-                dones = dones * self.check_episode_end(obs)
-                import pdb; pdb.set_trace()
             self.current_rewards = self.current_rewards * not_dones
             self.current_lengths = self.current_lengths * not_dones
 
@@ -517,6 +512,12 @@ class SACAgent(BaseAlgorithm):
             if isinstance(next_obs, dict):    
                 next_obs = next_obs['obs']
 
+            if not self.is_time_to_go:
+                dones = dones * no_timeouts
+            else:
+                dones = dones * self.check_episode_end(next_obs)
+                import pdb; pdb.set_trace()
+            
             rewards = self.rewards_shaper(rewards)
 
             self.replay_buffer.add(obs, action, torch.unsqueeze(rewards, 1), next_obs, torch.unsqueeze(dones, 1))
