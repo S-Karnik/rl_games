@@ -305,8 +305,8 @@ class SACAgent(BaseAlgorithm):
         actor_loss = (torch.max(self.alpha.detach(), self.min_alpha) * log_prob - actor_Q)
         actor_loss = actor_loss.mean()
         self.actor_optimizer.zero_grad(set_to_none=True)
-        torch.nn.utils.clip_grad_norm_(self.model.sac_network.actor.parameters(), self.grad_norm)
         actor_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.model.sac_network.actor.parameters(), self.grad_norm)
         self.actor_optimizer.step()
 
         for p in self.model.sac_network.critic.parameters():
@@ -316,8 +316,9 @@ class SACAgent(BaseAlgorithm):
             alpha_loss = (self.alpha *
                           (-log_prob - self.target_entropy).detach()).mean()
             self.log_alpha_optimizer.zero_grad(set_to_none=True)
-            torch.nn.utils.clip_grad_norm_(self.model.sac_network.critic.parameters(), self.grad_norm)
             alpha_loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.model.sac_network.actor.parameters(), self.grad_norm)
+            torch.nn.utils.clip_grad_norm_(self.model.sac_network.critic.parameters(), self.grad_norm)
             self.log_alpha_optimizer.step()
         else:
             alpha_loss = None
