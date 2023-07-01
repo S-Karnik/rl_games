@@ -195,7 +195,9 @@ class SACAgent(BaseAlgorithm):
             self.num_replay_buf_samples = config["num_replay_buf_samples"]
             self.min_gamma = config["min_gamma"]
             self.max_gamma = config["max_gamma"]
-            # self.num_agents *= self.num_replay_buf_samples
+            self.max_time_to_go = config["max_time_to_go"]
+            self.num_agents *= self.num_replay_buf_samples
+            self.gammas_ttg = torch.linspace(self.min_gamma, self.max_gamma, self.num_time_to_go).to(device=self._device)
 
     def init_tensors(self):
         if self.observation_space.dtype == np.uint8:
@@ -334,22 +336,30 @@ class SACAgent(BaseAlgorithm):
         return torch.where(obs[:, -self.num_time_to_go+1] == 1.0)
 
     def random_obs_variations(self, obs, action, reward, next_obs, done):
-        obs = torch.repeat_interleave(obs, repeats=self.num_replay_buf_samples, dim=0)
-        action = torch.repeat_interleave(action, repeats=self.num_replay_buf_samples, dim=0)
-        reward = torch.repeat_interleave(reward, repeats=self.num_replay_buf_samples, dim=0)
-        next_obs = torch.repeat_interleave(next_obs, repeats=self.num_replay_buf_samples, dim=0)
-        done = torch.repeat_interleave(done, repeats=self.num_replay_buf_samples, dim=0)
+        single_obs_dim = obs.shape[0]
+        obs = torch.repeat_interleave(obs, repeats=self.num_replay_buf_samples, dim=0).to(device=self._device)
+        action = torch.repeat_interleave(action, repeats=self.num_replay_buf_samples, dim=0).to(device=self._device)
+        reward = torch.repeat_interleave(reward, repeats=self.num_replay_buf_samples, dim=0).to(device=self._device)
+        next_obs = torch.repeat_interleave(next_obs, repeats=self.num_replay_buf_samples, dim=0).to(device=self._device)
+        done = torch.repeat_interleave(done, repeats=self.num_replay_buf_samples, dim=0).to(device=self._device)
         # TODO: distinguish between done from early termination vs end of episode length. we can check this be checking the values of the observations
         episode_ends = self.check_episode_end(obs)
         done[episode_ends] = False
         import pdb; pdb.set_trace()
-        random_time_to_gos = torch.randint()
-        
+        random_time_to_gos = torch.randint(1, self.max_time_to_go + 1, size = (len(obs)//single_obs_dim, ))
+        random_time_to_gos_p1 = random_time_to_gos - 1
+        updated_obs = obs
+        original_indices = torch.arange(self.num_replay_buf_samples) * single_obs_dim
+        all_indices = torch.arange(obs.shape[0])
+        non_original_indices = torch.masked_select(all_indices, torch.logical_not(torch.isin(all_indices, original_indices)))
+        updated_obs[non_original_indices][-self.num_time_to_go:] = self.gammas_ttg ** random_time_to_gos
+        next_obs[non_original_indices][-self.num_time_to_go:] = self.gammas_ttg ** random_time_to_gos_p1
+        done[non_original_indices] = False
 
     def update(self, step):
         obs, action, reward, next_obs, done = self.replay_buffer.sample(self.batch_size)
-        # if self.buffer_vary_ttg:
-        #     obs, action, reward, next_obs, done = self.random_obs_variations(obs, action, reward, next_obs, done)
+        if self.buffer_vary_ttg:
+            obs, action, reward, next_obs, done = self.random_obs_variations(obs, action, reward, next_obs, done)
         not_done = ~done
 
         obs = self.preproc_obs(obs)
