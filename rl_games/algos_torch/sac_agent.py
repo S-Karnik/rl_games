@@ -344,17 +344,19 @@ class SACAgent(BaseAlgorithm):
         done = torch.repeat_interleave(done, repeats=self.num_replay_buf_samples, dim=0).to(device=self._device)
         # TODO: distinguish between done from early termination vs end of episode length. we can check this be checking the values of the observations
         episode_ends = self.check_episode_end(obs)
-        random_time_to_gos = torch.randint(1, self.max_time_to_go + 1, size = (len(obs)//single_obs_dim, )).to(device=self._device)
+        done[episode_ends] = False
+        random_time_to_gos = torch.randint(1, self.max_time_to_go + 1, size = (len(obs) - (len(obs)//single_obs_dim), )).to(self._device).reshape(-1, 1)
         random_time_to_gos_p1 = random_time_to_gos - 1
         updated_obs = obs
-        original_indices = torch.arange(self.num_replay_buf_samples) * single_obs_dim
-        all_indices = torch.arange(obs.shape[0])
-        non_original_indices = torch.masked_select(all_indices, torch.logical_not(torch.isin(all_indices, original_indices)))
-        updated_obs[non_original_indices][-self.num_time_to_go:] = self.gammas_ttg ** random_time_to_gos
-        next_obs[non_original_indices][-self.num_time_to_go:] = self.gammas_ttg ** random_time_to_gos_p1
+        original_indices = torch.arange(self.num_replay_buf_samples, device=self._device) * single_obs_dim
+        all_indices = torch.arange(obs.shape[0], device=self._device)
+        non_original_indices = torch.masked_select(all_indices, torch.logical_not(torch.isin(all_indices, original_indices))).to(self._device)
+        repeated_gammas = self.gammas_ttg.unsqueeze(0).repeat(len(non_original_indices), 1)
+        updated_obs[non_original_indices, -self.num_time_to_go:] = repeated_gammas ** random_time_to_gos
+        next_obs[non_original_indices, -self.num_time_to_go:] = repeated_gammas ** random_time_to_gos_p1
         done[non_original_indices] = False
-        done[random_time_to_gos_p1 == 0] = True
         import pdb; pdb.set_trace()
+        return obs, action, reward, next_obs, done
 
     def update(self, step):
         obs, action, reward, next_obs, done = self.replay_buffer.sample(self.batch_size)
