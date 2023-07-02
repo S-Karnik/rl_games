@@ -512,7 +512,7 @@ class SACAgent(BaseAlgorithm):
                 obs = obs['obs']
             if isinstance(next_obs, dict):    
                 next_obs = next_obs['obs']
-            if not self.is_time_to_go:
+            if not self.buffer_vary_ttg:
                 dones = dones * no_timeouts
             else:
                 dones = dones * (next_obs[:, -self.num_time_to_go+1] == 1.0)
