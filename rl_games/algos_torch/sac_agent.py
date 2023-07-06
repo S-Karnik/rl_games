@@ -288,7 +288,7 @@ class SACAgent(BaseAlgorithm):
         critic2_loss = self.c_loss(current_Q2, target_Q)
         critic_loss = critic1_loss + critic2_loss 
         self.critic_optimizer.zero_grad(set_to_none=True)
-        torch.nn.utils.clip_grad_norm_(self.model.sac_network.critic.parameters(), self.grad_norm)
+        # torch.nn.utils.clip_grad_norm_(self.model.sac_network.critic.parameters(), self.grad_norm)
         critic_loss.backward()
         self.critic_optimizer.step()
 
@@ -309,7 +309,7 @@ class SACAgent(BaseAlgorithm):
         actor_loss = actor_loss.mean()
         self.actor_optimizer.zero_grad(set_to_none=True)
         actor_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.model.sac_network.actor.parameters(), self.grad_norm)
+        # torch.nn.utils.clip_grad_norm_(self.model.sac_network.actor.parameters(), self.grad_norm)
         self.actor_optimizer.step()
 
         for p in self.model.sac_network.critic.parameters():
@@ -320,8 +320,8 @@ class SACAgent(BaseAlgorithm):
                           (-log_prob - self.target_entropy).detach()).mean()
             self.log_alpha_optimizer.zero_grad(set_to_none=True)
             alpha_loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.model.sac_network.actor.parameters(), self.grad_norm)
-            torch.nn.utils.clip_grad_norm_(self.model.sac_network.critic.parameters(), self.grad_norm)
+            # torch.nn.utils.clip_grad_norm_(self.model.sac_network.actor.parameters(), self.grad_norm)
+            # torch.nn.utils.clip_grad_norm_(self.model.sac_network.critic.parameters(), self.grad_norm)
             self.log_alpha_optimizer.step()
         else:
             alpha_loss = None
