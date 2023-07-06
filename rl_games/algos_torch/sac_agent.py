@@ -278,7 +278,7 @@ class SACAgent(BaseAlgorithm):
             target_V = torch.min(target_Q1, target_Q2) - self.alpha * log_prob
 
             target_Q = reward + (not_done * self.gamma * target_V)
-            target_Q = torch.clamp(target_Q, min=-1000, max=5000)
+            target_Q = torch.clamp(target_Q, min=-1000, max=5000).to(device=self.device)
             target_Q = target_Q.detach()
 
         # get current Q estimates
