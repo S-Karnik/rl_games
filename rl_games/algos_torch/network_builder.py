@@ -828,7 +828,7 @@ class DiagGaussianActor(NetworkBuilder.BaseNetwork):
         self.trunk = nn.Sequential(*list(self.trunk.children()), nn.Linear(last_layer, output_dim))
 
     def forward(self, obs):
-        mu, log_std = self.trunk(obs).chunk(2, dim=-1)
+        mu, log_std = self.trunk(obs.float()).chunk(2, dim=-1)
 
         # constrain log_std inside [log_std_min, log_std_max]
         #log_std = torch.tanh(log_std)
