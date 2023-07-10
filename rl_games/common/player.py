@@ -205,6 +205,9 @@ class BasePlayer(object):
             has_masks = self.env.has_action_mask()
 
         need_init_rnn = self.is_rnn
+        obses = self.env_reset(self.env)
+        batch_size = 1
+        batch_size = self.get_batch_size(obses, batch_size)
         all_cr = torch.zeros((n_games, batch_size, self.max_steps), dtype=torch.float32)
         for i_game in range(n_games):
             if games_played >= n_games:
