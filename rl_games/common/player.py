@@ -208,7 +208,9 @@ class BasePlayer(object):
         obses = self.env_reset(self.env)
         batch_size = 1
         batch_size = self.get_batch_size(obses, batch_size)
-        all_cr = torch.zeros((n_games, batch_size, self.max_steps), dtype=torch.float32)
+        all_cr = torch.zeros((batch_size, self.max_steps), dtype=torch.float32)
+        extra_info = torch.zeros((batch_size, self.max_steps), dtype=torch.float32)
+        all_done = torch.zeros((batch_size, self.max_steps), dtype=torch.bool)
         for i_game in range(n_games):
             if games_played >= n_games:
                 break
@@ -235,8 +237,11 @@ class BasePlayer(object):
                     action = self.get_action(obses, is_deterministic)
 
                 obses, r, done, info = self.env_step(self.env, action)
+                if "rot_dist" in info:
+                    extra_info[:, n] = info["extra_info"]
                 cr += r
-                # all_cr[i_game, :, n] = cr
+                all_cr[:, n] = cr
+                all_done[:, n] = done
                 steps += 1
 
                 if render:
@@ -280,10 +285,11 @@ class BasePlayer(object):
                             print(f'reward: {cur_rewards_done:.4} steps: {cur_steps_done:.4f}')
 
                     sum_game_res += game_res
-                    if batch_size//self.num_agents == 1 or games_played >= n_games:
+                    if games_played >= n_games:
                         break
         print(all_cr)
         print(sum_rewards)
+        print(extra_info)
         if print_game_res:
             print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps /
                   games_played * n_game_life, 'winrate:', sum_game_res / games_played * n_game_life)
