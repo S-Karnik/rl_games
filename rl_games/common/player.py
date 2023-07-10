@@ -303,9 +303,9 @@ class BasePlayer(object):
             print('av reward:', sum_rewards / games_played * n_game_life,
                   'av steps:', sum_steps / games_played * n_game_life)
 
-    torch.save(all_cr, os.path.join(self.full_dir, f'all_cr.pt'))
-    torch.save(extra_info, os.path.join(self.full_dir, f'extra_info.pt'))
-    torch.save(all_done_check, os.path.join(self.full_dir, f'all_done_check.pt'))
+        torch.save(all_cr, os.path.join(self.full_dir, f'all_cr.pt'))
+        torch.save(extra_info, os.path.join(self.full_dir, f'extra_info.pt'))
+        torch.save(all_done_check, os.path.join(self.full_dir, f'all_done_check.pt'))
 
     def get_batch_size(self, obses, batch_size):
         obs_shape = self.obs_shape
