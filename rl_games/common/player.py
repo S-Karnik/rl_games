@@ -215,7 +215,8 @@ class BasePlayer(object):
         batch_size = 1
         batch_size = self.get_batch_size(obses, batch_size)
         all_cr = torch.zeros((batch_size, self.max_steps), dtype=torch.float32)
-        extra_info = torch.zeros((batch_size, self.max_steps), dtype=torch.float32)
+        consecutive_successes = torch.zeros((batch_size, self.max_steps), dtype=torch.float32)
+        rot_dists = torch.zeros((batch_size, self.max_steps), dtype=torch.float32)
         all_done = torch.zeros((batch_size, self.max_steps), dtype=torch.bool)
         all_done_check = torch.zeros(batch_size, dtype=torch.bool)
         for i_game in range(n_games):
@@ -244,6 +245,7 @@ class BasePlayer(object):
                 
                 if "consecutive_successes" in info:
                     extra_info[:, n] = info["consecutive_successes"]
+                    rot_dists[:, n] = info["rot_dist"]
                     extra_info[:, n] = (~all_done_check) * extra_info[:, n] + all_done_check * extra_info[:, n-1]
                 cr += r
                 all_cr[:, n] = cr
@@ -292,6 +294,11 @@ class BasePlayer(object):
                             print(f'reward: {cur_rewards_done:.4} steps: {cur_steps_done:.4f}')
 
                     sum_game_res += game_res
+                if torch.all(all_done_check):
+                    break
+            if torch.all(all_done_check):
+                break
+                
         print(sum_rewards)
         print(all_cr.mean(dim=0))
         print(extra_info.mean(dim=0))
@@ -304,8 +311,9 @@ class BasePlayer(object):
                   'av steps:', sum_steps / games_played * n_game_life)
 
         torch.save(all_cr, os.path.join(self.full_dir, f'all_cr.pt'))
-        torch.save(extra_info, os.path.join(self.full_dir, f'extra_info.pt'))
-        torch.save(all_done_check, os.path.join(self.full_dir, f'all_done_check.pt'))
+        torch.save(extra_info, os.path.join(self.full_dir, f'consecutive_successes.pt'))
+        torch.save(rot_dists, os.path.join(self.full_dir, f'rot_dists.pt'))
+        torch.save(all_done, os.path.join(self.full_dir, f'all_done.pt'))
 
     def get_batch_size(self, obses, batch_size):
         obs_shape = self.obs_shape
