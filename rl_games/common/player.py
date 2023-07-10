@@ -205,7 +205,8 @@ class BasePlayer(object):
             has_masks = self.env.has_action_mask()
 
         need_init_rnn = self.is_rnn
-        for _ in range(n_games):
+        all_cr = torch.zeros((n_games, batch_size, self.max_steps), dtype=torch.float32)
+        for i_game in range(n_games):
             if games_played >= n_games:
                 break
 
@@ -232,6 +233,7 @@ class BasePlayer(object):
 
                 obses, r, done, info = self.env_step(self.env, action)
                 cr += r
+                all_cr[i_game, :, n] = cr
                 steps += 1
 
                 if render:
@@ -277,7 +279,7 @@ class BasePlayer(object):
                     sum_game_res += game_res
                     if batch_size//self.num_agents == 1 or games_played >= n_games:
                         break
-
+        print(all_cr)
         print(sum_rewards)
         if print_game_res:
             print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps /
