@@ -246,7 +246,7 @@ class BasePlayer(object):
                 if "successes_all" in info:
                     consecutive_successes[:, n] = info["successes_all"]
                     rot_dists[:, n] = info["rot_dist_all"]
-                    consecutive_successes[:, n] = (~all_done_check) * consecutive_successes[:, n] + all_done_check * consecutive_successes[:, n-1]
+                    consecutive_successes[:, n] = (~all_done_check) * consecutive_successes[:, n]
                 cr += r
                 all_cr[:, n] = cr
                 steps += 1
