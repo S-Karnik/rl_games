@@ -73,7 +73,7 @@ class BasePlayer(object):
         self.save_folder = self.player_config.get("save_folder", "asdf")
         full_dir = os.path.join(self.save_dir, self.save_folder)
         if not os.path.exists(full_dir):
-            os.mkdir(full_dir)
+            os.makedirs(full_dir)
         self.full_dir = full_dir
         self.device = torch.device(self.device_name)
 
