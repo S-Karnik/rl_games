@@ -237,8 +237,8 @@ class BasePlayer(object):
                     action = self.get_action(obses, is_deterministic)
 
                 obses, r, done, info = self.env_step(self.env, action)
-                if "rot_dist" in info:
-                    extra_info[:, n] = info["rot_dist"]
+                if "consecutive_successes" in info:
+                    extra_info[:, n] = info["consecutive_successes"]
                 cr += r
                 all_cr[:, n] = cr
                 all_done[:, n] = done
