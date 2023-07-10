@@ -244,8 +244,8 @@ class BasePlayer(object):
                 obses, r, done, info = self.env_step(self.env, action)
                 
                 if "consecutive_successes" in info:
-                    consecutive_successes[:, n] = info["consecutive_successes"]
-                    rot_dists[:, n] = info["rot_dist"]
+                    consecutive_successes[:, n] = info["consecutive_successes_all"]
+                    rot_dists[:, n] = info["rot_dist_all"]
                     consecutive_successes[:, n] = (~all_done_check) * consecutive_successes[:, n] + all_done_check * consecutive_successes[:, n-1]
                 cr += r
                 all_cr[:, n] = cr
