@@ -6,7 +6,7 @@ import copy
 from rl_games.common import vecenv
 from rl_games.common import env_configurations
 from rl_games.algos_torch import model_builder
-
+import os
 
 class BasePlayer(object):
 
@@ -69,6 +69,11 @@ class BasePlayer(object):
         self.print_stats = self.player_config.get('print_stats', True)
         self.render_sleep = self.player_config.get('render_sleep', 0.002)
         self.max_steps = self.config.get("max_env_steps", 108000 // 4)
+        self.save_dir = self.config.get("save_dir", "asdf")
+        self.save_folder = self.config.get("save_folder", "asdf")
+        full_dir = os.path.join(self.save_dir, self.save_folder)
+        if not os.path.exists(full_dir):
+            os.mkdir(full_dir)
         self.device = torch.device(self.device_name)
 
     def load_networks(self, params):
@@ -211,10 +216,8 @@ class BasePlayer(object):
         all_cr = torch.zeros((batch_size, self.max_steps), dtype=torch.float32)
         extra_info = torch.zeros((batch_size, self.max_steps), dtype=torch.float32)
         all_done = torch.zeros((batch_size, self.max_steps), dtype=torch.bool)
+        all_done_check = torch.zeros(batch_size, dtype=torch.bool)
         for i_game in range(n_games):
-            if games_played >= n_games:
-                break
-
             obses = self.env_reset(self.env)
             batch_size = 1
             batch_size = self.get_batch_size(obses, batch_size)
@@ -240,9 +243,9 @@ class BasePlayer(object):
                 
                 if "consecutive_successes" in info:
                     extra_info[:, n] = info["consecutive_successes"]
+                    extra_info[:, n] = (1-all_done_check) * extra_info[:, n] + all_done_check * extra_info[:, n-1]
                 cr += r
                 all_cr[:, n] = cr
-                all_done[:, n] = done
                 steps += 1
 
                 if render:
@@ -251,12 +254,12 @@ class BasePlayer(object):
 
                 all_done_indices = done.nonzero(as_tuple=False)
                 done_indices = all_done_indices[::self.num_agents]
-                if n > 0:
-                    extra_info[done_indices, n] = extra_info[done_indices, n-1]
                 done_count = len(done_indices)
                 games_played += done_count
+                all_done_check = torch.logical_or(all_done_check, done)
+                all_done[:, n] = all_done_check
 
-                if done_count > 0:
+                if len(done_indices) > 0:
                     if self.is_rnn:
                         for s in self.states:
                             s[:, all_done_indices, :] = s[:,
@@ -288,11 +291,10 @@ class BasePlayer(object):
                             print(f'reward: {cur_rewards_done:.4} steps: {cur_steps_done:.4f}')
 
                     sum_game_res += game_res
-                    if games_played >= n_games:
-                        break
         print(sum_rewards)
         print(all_cr.mean(dim=0))
         print(extra_info.mean(dim=0))
+        
         if print_game_res:
             print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps /
                   games_played * n_game_life, 'winrate:', sum_game_res / games_played * n_game_life)
