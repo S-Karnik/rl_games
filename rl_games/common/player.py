@@ -238,7 +238,7 @@ class BasePlayer(object):
 
                 obses, r, done, info = self.env_step(self.env, action)
                 if "rot_dist" in info:
-                    extra_info[:, n] = info["extra_info"]
+                    extra_info[:, n] = info["rot_dist"]
                 cr += r
                 all_cr[:, n] = cr
                 all_done[:, n] = done
