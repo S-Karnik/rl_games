@@ -237,6 +237,7 @@ class BasePlayer(object):
                     action = self.get_action(obses, is_deterministic)
 
                 obses, r, done, info = self.env_step(self.env, action)
+                
                 if "consecutive_successes" in info:
                     extra_info[:, n] = info["consecutive_successes"]
                 cr += r
@@ -250,6 +251,8 @@ class BasePlayer(object):
 
                 all_done_indices = done.nonzero(as_tuple=False)
                 done_indices = all_done_indices[::self.num_agents]
+                if n > 0:
+                    extra_info[done_indices, n] = extra_info[done_indices, n-1]
                 done_count = len(done_indices)
                 games_played += done_count
 
@@ -261,7 +264,7 @@ class BasePlayer(object):
 
                     cur_rewards = cr[done_indices].sum().item()
                     cur_steps = steps[done_indices].sum().item()
-
+                    
                     cr = cr * (1.0 - done.float())
                     steps = steps * (1.0 - done.float())
                     sum_rewards += cur_rewards
@@ -287,9 +290,9 @@ class BasePlayer(object):
                     sum_game_res += game_res
                     if games_played >= n_games:
                         break
-        print(all_cr)
         print(sum_rewards)
-        print(extra_info)
+        print(all_cr.mean(dim=0))
+        print(extra_info.mean(dim=0))
         if print_game_res:
             print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps /
                   games_played * n_game_life, 'winrate:', sum_game_res / games_played * n_game_life)
