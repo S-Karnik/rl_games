@@ -69,8 +69,8 @@ class BasePlayer(object):
         self.print_stats = self.player_config.get('print_stats', True)
         self.render_sleep = self.player_config.get('render_sleep', 0.002)
         self.max_steps = self.config.get("max_env_steps", 108000 // 4)
-        self.save_dir = self.config.get("save_dir", "asdf")
-        self.save_folder = self.config.get("save_folder", "asdf")
+        self.save_dir = self.player_config.get("save_dir", "asdf")
+        self.save_folder = self.player_config.get("save_folder", "asdf")
         full_dir = os.path.join(self.save_dir, self.save_folder)
         if not os.path.exists(full_dir):
             os.mkdir(full_dir)
