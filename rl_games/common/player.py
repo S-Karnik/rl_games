@@ -244,9 +244,9 @@ class BasePlayer(object):
                 obses, r, done, info = self.env_step(self.env, action)
                 
                 if "consecutive_successes" in info:
-                    extra_info[:, n] = info["consecutive_successes"]
+                    consecutive_successes[:, n] = info["consecutive_successes"]
                     rot_dists[:, n] = info["rot_dist"]
-                    extra_info[:, n] = (~all_done_check) * extra_info[:, n] + all_done_check * extra_info[:, n-1]
+                    consecutive_successes[:, n] = (~all_done_check) * consecutive_successes[:, n] + all_done_check * consecutive_successes[:, n-1]
                 cr += r
                 all_cr[:, n] = cr
                 steps += 1
@@ -301,7 +301,7 @@ class BasePlayer(object):
                 
         print(sum_rewards)
         print(all_cr.mean(dim=0))
-        print(extra_info.mean(dim=0))
+        print(consecutive_successes.mean(dim=0))
         
         if print_game_res:
             print('av reward:', sum_rewards / games_played * n_game_life, 'av steps:', sum_steps /
@@ -311,7 +311,7 @@ class BasePlayer(object):
                   'av steps:', sum_steps / games_played * n_game_life)
 
         torch.save(all_cr, os.path.join(self.full_dir, f'all_cr.pt'))
-        torch.save(extra_info, os.path.join(self.full_dir, f'consecutive_successes.pt'))
+        torch.save(consecutive_successes, os.path.join(self.full_dir, f'consecutive_successes.pt'))
         torch.save(rot_dists, os.path.join(self.full_dir, f'rot_dists.pt'))
         torch.save(all_done, os.path.join(self.full_dir, f'all_done.pt'))
 
