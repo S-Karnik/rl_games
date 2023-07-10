@@ -236,7 +236,7 @@ class BasePlayer(object):
 
                 obses, r, done, info = self.env_step(self.env, action)
                 cr += r
-                all_cr[i_game, :, n] = cr
+                # all_cr[i_game, :, n] = cr
                 steps += 1
 
                 if render:
