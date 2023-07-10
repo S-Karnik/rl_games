@@ -243,7 +243,7 @@ class BasePlayer(object):
                 
                 if "consecutive_successes" in info:
                     extra_info[:, n] = info["consecutive_successes"]
-                    extra_info[:, n] = (1-all_done_check) * extra_info[:, n] + all_done_check * extra_info[:, n-1]
+                    extra_info[:, n] = (~all_done_check) * extra_info[:, n] + all_done_check * extra_info[:, n-1]
                 cr += r
                 all_cr[:, n] = cr
                 steps += 1
