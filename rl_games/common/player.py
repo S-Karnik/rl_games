@@ -74,6 +74,7 @@ class BasePlayer(object):
         full_dir = os.path.join(self.save_dir, self.save_folder)
         if not os.path.exists(full_dir):
             os.mkdir(full_dir)
+        self.full_dir = full_dir
         self.device = torch.device(self.device_name)
 
     def load_networks(self, params):
@@ -301,6 +302,11 @@ class BasePlayer(object):
         else:
             print('av reward:', sum_rewards / games_played * n_game_life,
                   'av steps:', sum_steps / games_played * n_game_life)
+
+    torch.save(sum_rewards, os.path.join(self.full_dir, f'sum_rewards.pt'))
+    torch.save(all_cr, os.path.join(self.full_dir, f'all_cr.pt'))
+    torch.save(extra_info, os.path.join(self.full_dir, f'extra_info.pt'))
+    torch.save(all_done_check, os.path.join(self.full_dir, f'all_done_check.pt'))
 
     def get_batch_size(self, obses, batch_size):
         obs_shape = self.obs_shape
