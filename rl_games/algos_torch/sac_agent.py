@@ -432,7 +432,7 @@ class SACAgent(BaseAlgorithm):
 
     def env_reset(self):
         with torch.no_grad():
-            obs = self.vec_env.reset()
+            obs, _ = self.vec_env.reset()
 
         obs = self.obs_to_tensors(obs)
 
