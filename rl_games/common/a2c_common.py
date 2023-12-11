@@ -972,7 +972,6 @@ class DiscreteA2CBase(A2CBase):
 
         while True:
             epoch_num = self.update_epoch()
-            print(f"epoch_num = {epoch_num}")
             step_time, play_time, update_time, sum_time, a_losses, c_losses, entropies, kls, last_lr, lr_mul = self.train_epoch()
 
             # cleaning memory to optimize space
@@ -981,6 +980,7 @@ class DiscreteA2CBase(A2CBase):
             curr_frames = self.curr_frames * self.world_size if self.multi_gpu else self.curr_frames
             self.frame += curr_frames
             should_exit = False
+            self.print_stats = True
 
             if self.global_rank == 0:
                 self.diagnostics.epoch(self, current_epoch = epoch_num)
