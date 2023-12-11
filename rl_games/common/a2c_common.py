@@ -57,7 +57,7 @@ def print_statistics(print_stats, curr_frames, step_time, step_inference_time, t
         elif max_frames == -1:
             print(f'fps step: {fps_step:.0f} fps step and policy inference: {fps_step_inference:.0f} fps total: {fps_total:.0f} epoch: {epoch_num:.0f}/{max_epochs:.0f} frames: {frame:.0f}')
         else:
-            print(f'fps step: {fps_step:.0f} fps step and policy inference: {fps_step_inference:.0f} fps total: {fps_total:.0f} epoch: {epoch_num:.0f}/{max_epochs:.0f} frames: {frame:.0f}/{max_frames:.0f}')
+            print(f'fps step: {fps_step:.0f} fps step and policy inference: {fps_step_inference:.0f} fps total: {fps_total:.0f} epoch: {epoch_num:.0f}/{max_epochs:.0f} frames: {frame:.0f}/{max_frames:.0f}', flush=True)
 
 
 class A2CBase(BaseAlgorithm):
@@ -972,8 +972,6 @@ class DiscreteA2CBase(A2CBase):
 
         while True:
             epoch_num = self.update_epoch()
-            if epoch_num < 100:
-             print(f"epoch_num = {epoch_num}")
             step_time, play_time, update_time, sum_time, a_losses, c_losses, entropies, kls, last_lr, lr_mul = self.train_epoch()
 
             # cleaning memory to optimize space
