@@ -75,7 +75,7 @@ def safe_load(filename):
     return safe_filesystem_op(torch.load, filename)
 
 def save_checkpoint(filename, state):
-    print("=> saving checkpoint '{}'".format(filename + '.pth'))
+    print("=> saving checkpoint '{}'".format(filename + '.pth'), flush=True)
     safe_save(state, filename + '.pth')
 
 def load_checkpoint(filename):
