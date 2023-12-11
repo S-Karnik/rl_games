@@ -972,6 +972,8 @@ class DiscreteA2CBase(A2CBase):
 
         while True:
             epoch_num = self.update_epoch()
+            if epoch_num < 100:
+             print(f"epoch_num = {epoch_num}")
             step_time, play_time, update_time, sum_time, a_losses, c_losses, entropies, kls, last_lr, lr_mul = self.train_epoch()
 
             # cleaning memory to optimize space
